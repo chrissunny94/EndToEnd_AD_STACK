@@ -1,0 +1,6 @@
+*.bag
+ros1/build/*
+ros1/devel/*
+ros2/build/*
+ros2/install/* 
+ros2/log/*
