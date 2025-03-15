@@ -2,8 +2,14 @@ ARG DOCKER_REPO=osrf/ros
 ARG ROS_DISTRO=humble
 ARG IMAGE_SUFFIX=-desktop
 
+
+
 # Base image from ROS + CUDA (official NVIDIA CUDA images)
 FROM nvidia/cuda:11.8.0-devel-ubuntu22.04 AS base
+# ENV DEBIAN_FRONTEND=noninteractive
+RUN apt update
+RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata
+
 
 # Install ROS 2 Humble
 ARG ROS_DISTRO=humble
@@ -29,24 +35,42 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Install TensorRT (from NVIDIA repo)
-RUN wget https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu2204/x86_64/nvidia-machine-learning-repo-ubuntu2204_1.0.0-1_all.deb && \
-    dpkg -i nvidia-machine-learning-repo-ubuntu2204_1.0.0-1_all.deb && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
+# RUN wget https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu2204/x86_64/nvidia-machine-learning-repo-ubuntu2204_1.0.0-1_all.deb 
+# RUN dpkg -i nvidia-machine-learning-repo-ubuntu2204_1.0.0-1_all.deb 
+# RUN apt-get update 
+
+# RUN apt-get update && apt-get install -y --no-install-recommends \
+#     software-properties-common && \
+#     add-apt-repository -y "deb https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu2204/x86_64/ /" && \
+#     apt-get update
+# Add NVIDIA CUDA & TensorRT Repositories
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    software-properties-common && \
+    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.0-1_all.deb && \
+    dpkg -i cuda-keyring_1.0-1_all.deb && \
+    apt-get update
+
+
+RUN apt-get install -y \
     tensorrt \
     python3-libnvinfer \
     libnvinfer-bin \
     libnvinfer-dev \
-    libnvinfer-plugin-dev \
-    && rm -rf /var/lib/apt/lists/*
+    libnvinfer-plugin-dev
+
+RUN rm -rf /var/lib/apt/lists/*
 
 # Install PyTorch (with CUDA support)
 RUN pip3 install --upgrade pip && \
     pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 
-# Install ROS 2 Humble
-RUN apt-get update && \
-    apt-get install -y ros-$ROS_DISTRO-desktop \
+# Set up ROS 2 Humble repository
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    software-properties-common curl && \
+    curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key | apt-key add - && \
+    sh -c 'echo "deb http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2.list' && \
+    apt-get update && apt-get install -y \
+    ros-humble-desktop \
     && rm -rf /var/lib/apt/lists/*
 
 # Source ROS environment automatically
