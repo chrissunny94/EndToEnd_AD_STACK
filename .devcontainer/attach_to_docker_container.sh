@@ -1,0 +1,1 @@
+docker run --gpus all --rm -it --network host --name bevfusion_container docker_bevfusion /bin/bash

@@ -1,41 +1,45 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/python
 {
-    "name": "python-cuda",
-    // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-    "image": "mcr.microsoft.com/devcontainers/python:3.11",
-    "runArgs": [
-        "--gpus=all"
-    ],
-    "remoteEnv": {
-        "PATH": "${containerEnv:PATH}:/usr/local/cuda/bin",
-        "LD_LIBRARY_PATH": "$LD_LIBRARY_PATH:/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64",
-        "XLA_FLAGS": "--xla_gpu_cuda_data_dir=/usr/local/cuda"
+    "name": "ROS Development Container",
+    "privileged": true,
+    "remoteUser": "${localEnv:USER}",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "args": {
+            "USERNAME": "${localEnv:USER}",
+            "DOCKER_REPO": "osrf/ros",
+            "ROS_DISTRO": "noetic",
+            "IMAGE_SUFFIX": "-desktop-full"
+        }
     },
-    // Features to add to the dev container. More info: https://containers.dev/features.
-    // "features": {},
-    // Use 'forwardPorts' to make a list of ports inside the container available locally.
-    // "forwardPorts": [],
-    // Use 'postCreateCommand' to run commands after the container is created.
-    "updateContentCommand": "bash .devcontainer/install-dev-tools.sh",
-    "postCreateCommand": [
-        "nvidia-smi"
-    ],
-    // Configure tool-specific properties.
+    "workspaceFolder": "/home/ws",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/home/ws,type=bind",
     "customizations": {
         "vscode": {
-            "extensions": [
-                "ms-azuretools.vscode-docker",
-                "ms-python.python",
-                "ms-toolsai.jupyter",
-                "ms-toolsai.vscode-jupyter-cell-tags",
-                "ms-toolsai.jupyter-keymap",
-                "ms-toolsai.jupyter-renderers",
-                "ms-toolsai.vscode-jupyter-slideshow",
-                "ms-python.vscode-pylance"
+            "extensions":[
+                "ms-vscode.cpptools",
+                "ms-vscode.cpptools-themes",
+                "twxs.cmake",
+                "donjayamanne.python-extension-pack",
+                "eamodio.gitlens",
+                "ms-iot.vscode-ros"
             ]
         }
-    }
-    // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-    // "remoteUser": "root"
+    },
+    "containerEnv": {
+        "DISPLAY": "unix:0",
+        "ROS_LOCALHOST_ONLY": "1",
+        "ROS_DOMAIN_ID": "42"
+    },
+    "runArgs": [
+        "--net=host",
+        "-e", "DISPLAY=${env:DISPLAY}",
+        "--gpus", "all"
+    ],
+    "mounts": [
+        "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached",
+        "source=/dev/dri,target=/dev/dri,type=bind,consistency=cached",
+        "source=${localEnv:HOME}/.ssh,target=/home/${localEnv:USER}/.ssh,type=bind"
+    ],
+    // "initializeCommand": "source ./.devcontainer/initialize.sh",
+    // "postCreateCommand": "sh ./.devcontainer/postCreate.sh"
 }
