@@ -1,0 +1,10 @@
+FROM christhaliyath/tensorrt:latest AS pytorch
+
+# Fix: Ensure Python packages can be uninstalled
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends python3-distutils python3-setuptools
+
+# Upgrade pip and install PyTorch with CUDA 11.8
+RUN pip3 install --upgrade pip && \
+    pip3 install --ignore-installed sympy && \
+    pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118

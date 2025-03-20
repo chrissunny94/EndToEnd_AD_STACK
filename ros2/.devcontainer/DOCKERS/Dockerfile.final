@@ -1,0 +1,22 @@
+# Use an official NVIDIA PyTorch image as the base
+FROM nvcr.io/nvidia/pytorch:23.12-py3 AS pytorch
+
+# Use NVIDIA TensorRT image
+FROM nvcr.io/nvidia/tensorrt:23.12-py3 AS tensorrt
+
+# Use your ROS image
+FROM christhaliyath/ros:latest AS ros
+
+# Final stage
+FROM pytorch AS final
+
+# Copy layers from previous stages
+COPY --from=ros /opt/ros /opt/ros
+COPY --from=tensorrt /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu
+
+# Source ROS and workspace automatically
+RUN echo "source /opt/ros/humble/setup.bash" >> /etc/bash.bashrc
+RUN echo "source /home/${USERNAME}/ws/install/setup.bash" >> /etc/bash.bashrc
+
+USER $USERNAME
+CMD ["/bin/bash"]

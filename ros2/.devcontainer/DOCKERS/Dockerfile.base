@@ -1,0 +1,33 @@
+# Base image with CUDA
+FROM nvidia/cuda:11.8.0-devel-ubuntu22.04 AS base
+
+# RUN rm -rf /var/lib/apt/lists/* && mkdir -p /var/lib/apt/lists/partial && apt-get update
+USER root
+
+# Avoid interactive prompts
+RUN apt update && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata
+
+# Set up user
+ARG USERNAME=rosuser
+ARG USER_UID=1000
+ARG USER_GID=1000
+
+RUN if ! getent group ${USER_GID} > /dev/null; then groupadd --gid ${USER_GID} ${USERNAME}; fi && \
+    useradd --uid ${USER_UID} --gid ${USER_GID} -m ${USERNAME} && \
+    apt-get update && \
+    apt-get install -y sudo python3-pip python-is-python3 ssh neovim git && \
+    echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${USERNAME} && \
+    chmod 0440 /etc/sudoers.d/${USERNAME} && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install essential dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    build-essential cmake unzip wget curl ca-certificates \
+    libprotobuf-dev protobuf-compiler libopencv-dev \
+    python3-opencv libgoogle-glog-dev libgflags-dev \
+    libeigen3-dev libhdf5-dev && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+USER $USERNAME
+ENV SHELL /bin/bash

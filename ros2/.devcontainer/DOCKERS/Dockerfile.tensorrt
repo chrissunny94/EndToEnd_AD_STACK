@@ -1,0 +1,15 @@
+FROM christhaliyath/ros:latest  AS tensorrt
+
+# Use /tmp directory to avoid permission issues
+WORKDIR /tmp
+
+# Add NVIDIA CUDA & TensorRT Repositories
+RUN wget -O cuda-keyring.deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.0-1_all.deb && \
+    dpkg -i cuda-keyring.deb && \
+    rm cuda-keyring.deb && \
+    apt-get update && \
+    apt-get install -y tensorrt python3-libnvinfer libnvinfer-bin libnvinfer-dev libnvinfer-plugin-dev && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Restore working directory
+WORKDIR /

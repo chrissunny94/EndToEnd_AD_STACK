@@ -1,0 +1,14 @@
+FROM christhaliyath/base:latest AS ros
+
+USER root
+
+# Install ROS 2 Humble
+ARG ROS_DISTRO=humble
+
+RUN apt-get update && apt-get install -y curl && \
+    curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key | gpg --dearmor -o /usr/share/keyrings/ros-archive-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/ros2.list && \
+    apt-get update && apt-get install -y ros-humble-desktop ros-humble-pcl-ros && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> /etc/bash.bashrc

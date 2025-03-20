@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  base:
+    image: christhaliyath/base:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.base
+
+  ros:
+    image: christhaliyath/ros:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.ros
+    depends_on:
+      - base
+
+  tensorrt:
+    image: christhaliyath/tensorrt:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.tensorrt
+    depends_on:
+      - base
+
+  pytorch:
+    image: christhaliyath/pytorch:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.pytorch
+    depends_on:
+      - base
+
+  final:
+    image: christhaliyath/final:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.final
+    depends_on:
+      - ros
+      - tensorrt
+      - pytorch

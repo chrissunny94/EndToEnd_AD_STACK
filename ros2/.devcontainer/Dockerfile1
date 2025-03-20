@@ -1,0 +1,67 @@
+# Use NVIDIA CUDA as the base image
+FROM nvidia/cuda:11.8.0-devel-ubuntu22.04 AS base
+# Create user chris
+ARG USERNAME=root
+# RUN useradd -m -s /bin/bash $USERNAME && \
+#     echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Install all dependencies as root
+
+# ... (Keep all installations here)
+
+# Switch to the user at the END
+USER $USERNAME
+WORKDIR /home/$USERNAME
+
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Update and install base dependencies
+RUN apt update && apt install -y \
+    sudo wget curl gnupg2 lsb-release software-properties-common \
+    build-essential cmake unzip git neovim \
+    python3-pip python3-venv python-is-python3 \
+    libprotobuf-dev protobuf-compiler \
+    libopencv-dev python3-opencv \
+    libgoogle-glog-dev libgflags-dev \
+    libeigen3-dev libhdf5-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install NVIDIA TensorRT
+RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.0-1_all.deb \
+    && dpkg -i cuda-keyring_1.0-1_all.deb \
+    && apt update \
+    && apt install -y \
+       tensorrt python3-libnvinfer \
+       libnvinfer-bin libnvinfer-dev \
+       libnvinfer-plugin-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install CUDA Toolkit (Fixes nvcc issue)
+# RUN apt install -y cuda-toolkit-11-8
+
+# Install PyTorch with CUDA support
+# RUN pip3 install --upgrade pip && \
+#     pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+# # Install ROS2 Humble
+# RUN apt update && apt install -y \
+#     ros-humble-desktop \
+#     python3-colcon-common-extensions \
+#     && rm -rf /var/lib/apt/lists/*
+
+# Source ROS2 environment automatically
+RUN echo "source /opt/ros/humble/setup.bash" >> /etc/bash.bashrc
+
+# Clone BEVFusion-ROS-TensorRT
+# WORKDIR /workspace
+# RUN git clone --branch humble_devel https://github.com/linClubs/BEVFusion-ROS-TensorRT.git && \
+#     cd BEVFusion-ROS-TensorRT && \
+#     mkdir -p src && \
+#     colcon build
+
+# Expose ROS2 network ports
+EXPOSE 11311
+
+# Default command
+CMD ["/bin/bash"]
